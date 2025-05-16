@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}
+    {% if assignment %}Edit Assignment{% else %}Create Assignment{% endif %} - University Management System
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'courses:course_detail' course.id %}">
+                    {{ course.code }}
+                </a>
+            </li>
+            {% if assignment %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'assignments:assignment_detail' assignment.id %}">
+                        {{ assignment.title }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Edit</li>
+            {% else %}
+                <li class="breadcrumb-item active">Create Assignment</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">
+                        {% if assignment %}Edit{% else %}Create{% endif %} Assignment for {{ course.name }}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                            <input type="text" name="{{ form.title.name }}" 
+                                   class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.title.id_for_label }}" 
+                                   value="{{ form.title.value|default:'' }}"
+                                   required>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.title.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            <textarea name="{{ form.description.name }}" 
+                                    class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.description.id_for_label }}" 
+                                    rows="4"
+                                    required>{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.description.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
+                                <input type="datetime-local" name="{{ form.due_date.name }}" 
+                                       class="form-control {% if form.due_date.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.due_date.id_for_label }}" 
+                                       value="{{ form.due_date.value|date:'Y-m-d\TH:i' }}"
+                                       required>
+                                {% if form.due_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.due_date.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.total_marks.id_for_label }}" class="form-label">Total Marks</label>
+                                <input type="number" name="{{ form.total_marks.name }}" 
+                                       class="form-control {% if form.total_marks.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.total_marks.id_for_label }}" 
+                                       value="{{ form.total_marks.value|default:'' }}"
+                                       min="0" step="0.1"
+                                       required>
+                                {% if form.total_marks.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.total_marks.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if assignment %}Save Changes{% else %}Create Assignment{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

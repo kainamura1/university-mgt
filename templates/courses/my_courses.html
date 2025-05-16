@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}My Courses - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">My Courses</h1>
+    
+    {% if enrollments %}
+        <div class="row mb-4">
+            {% for enrollment in enrollments %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">{{ enrollment.course.code }} - {{ enrollment.course.name }}</h5>
+                            <span class="badge bg-light text-dark">{{ enrollment.course.credits }} Credits</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Department: {{ enrollment.course.department }}</p>
+                            <p class="text-muted">Lecturer: {{ enrollment.course.lecturer.get_full_name }}</p>
+                            
+                            {% with progress=enrollment.get_progress %}
+                                <div class="mb-3">
+                                    <h6>Course Progress</h6>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ progress.progress_percentage }}%"
+                                             aria-valuenow="{{ progress.progress_percentage }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            {{ progress.progress_percentage|floatformat:1 }}%
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        Completed {{ progress.completed_assignments }} of {{ progress.total_assignments }} assignments
+                                    </small>
+                                </div>
+                            {% endwith %}
+
+                            {% with avg_score=enrollment.get_average_score %}
+                                {% if avg_score %}
+                                    <p class="mb-3">
+                                        Average Score: 
+                                        <span class="badge bg-success">{{ avg_score }}%</span>
+                                    </p>
+                                {% endif %}
+                            {% endwith %}
+
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'courses:course_detail' enrollment.course.id %}" 
+                                   class="btn btn-primary">View Course</a>
+                                {% if enrollment.course not in user.department.required_courses.all %}
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#dropCourseModal{{ enrollment.course.id }}">
+                                        Drop Course
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Status: {{ enrollment.get_status_display }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if enrollment.course not in user.department.required_courses.all %}
+                    <!-- Drop Course Modal -->
+                    <div class="modal fade" id="dropCourseModal{{ enrollment.course.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Drop Course</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to drop {{ enrollment.course.code }} - {{ enrollment.course.name }}?</p>
+                                    <p class="text-danger">This action cannot be undone.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="post" action="{% url 'courses:drop_course' enrollment.course.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Drop Course</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if available_courses %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Available Courses</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Lecturer</th>
+                                <th>Credits</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in available_courses %}
+                                <tr>
+                                    <td>{{ course.code }}</td>
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.lecturer.get_full_name }}</td>
+                                    <td>{{ course.credits }}</td>
+                                    <td>
+                                        <form method="post" action="{% url 'courses:enroll_course' course.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success btn-sm">Enroll</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {% if not enrollments %}
+            <div class="alert alert-info">
+                <p class="mb-0">You are not enrolled in any courses yet, and there are no available courses in your department.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Student Dashboard - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Welcome, {{ user.get_full_name }}</h1>
+    
+    <div class="row">
+        <!-- Enrolled Courses Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">My Courses</h5>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                        <div class="list-group list-group-flush">
+                            {% for enrollment in enrollments %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ enrollment.course.code }} - {{ enrollment.course.name }}</h6>
+                                    <p class="mb-1 text-muted">Lecturer: {{ enrollment.course.lecturer.get_full_name }}</p>
+                                    <small class="text-muted">Department: {{ enrollment.course.department }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You are not enrolled in any courses.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Assignments Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Pending Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_assignments_list %}
+                        <div class="list-group list-group-flush">
+                            {% for assignment in pending_assignments_list %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ assignment.title }}</h6>
+                                        <small class="text-danger">Due: {{ assignment.due_date|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ assignment.course.code }} - {{ assignment.course.name }}</p>
+                                    <a href="{% url 'assignments:submit_assignment' assignment.id %}" 
+                                       class="btn btn-sm btn-primary mt-2">
+                                        <i class="fas fa-paper-plane me-1"></i>Submit Assignment
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No pending assignments.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Progress -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Academic Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Assignments Completed</th>
+                                    <th>Average Score</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                    {% with progress=enrollment.get_progress %}
+                                        <tr>
+                                            <td>{{ enrollment.course.code }} - {{ enrollment.course.name }}</td>
+                                            <td>
+                                                {{ progress.completed_assignments }}/{{ progress.total_assignments }}
+                                            </td>
+                                            <td>
+                                                {% with avg=enrollment.get_average_score %}
+                                                    {% if avg %}
+                                                        {{ avg|floatformat:1 }}%
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: {{ progress.progress_percentage }}%"
+                                                         aria-valuenow="{{ progress.progress_percentage }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ progress.progress_percentage|floatformat:0 }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endwith %}
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No course data available</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

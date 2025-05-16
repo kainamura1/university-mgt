@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Submission Details - {{ submission.assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'courses:course_detail' submission.assignment.course.id %}">
+                    {{ submission.assignment.course.code }}
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'assignments:assignment_detail' submission.assignment.id %}">
+                    {{ submission.assignment.title }}
+                </a>
+            </li>
+            <li class="breadcrumb-item active">Submission Details</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Submission Content -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="card-title h4 mb-0">Submission Details</h2>
+                    {% if submission.is_late %}
+                        <span class="badge bg-warning">Late Submission</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <!-- Student Info -->
+                    <div class="mb-4">
+                        <h5>Student Information</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-3">Name:</dt>
+                            <dd class="col-sm-9">{{ submission.student.get_full_name }}</dd>
+
+                            <dt class="col-sm-3">Registration:</dt>
+                            <dd class="col-sm-9">{{ submission.student.registration_number }}</dd>
+
+                            <dt class="col-sm-3">Department:</dt>
+                            <dd class="col-sm-9">{{ submission.student.department }}</dd>
+
+                            <dt class="col-sm-3">Submitted:</dt>
+                            <dd class="col-sm-9">{{ submission.submitted_at|date:"M d, Y H:i" }}</dd>
+                        </dl>
+                    </div>
+
+                    <!-- Text Submission -->
+                    {% if submission.content %}
+                        <div class="mb-4">
+                            <h5>Text Submission</h5>
+                            <div class="p-3 bg-light rounded">
+                                {{ submission.content|linebreaks }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- File Submission -->
+                    {% if submission.file %}
+                        <div class="mb-4">
+                            <h5>File Submission</h5>
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-pdf text-danger me-3 fa-2x"></i>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-2">Submitted File</h6>
+                                        <div class="btn-group">
+                                            <a href="{{ submission.file.url }}" 
+                                               class="btn btn-primary"
+                                               target="_blank">
+                                                <i class="fas fa-eye me-1"></i>View File
+                                            </a>
+                                            <a href="{{ submission.file.url }}" 
+                                               class="btn btn-outline-primary"
+                                               download>
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Grading Section -->
+                    {% if submission.marks %}
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">Grading Details</h5>
+                            <p class="mb-1">
+                                Score: {{ submission.marks }}/{{ submission.assignment.total_marks }}
+                                ({{ submission.marks|calculate_percentage:submission.assignment.total_marks }}%)
+                            </p>
+                            {% if submission.feedback %}
+                                <hr>
+                                <p class="mb-0">
+                                    <strong>Feedback:</strong><br>
+                                    {{ submission.feedback|linebreaks }}
+                                </p>
+                            {% endif %}
+                            <small class="text-muted d-block mt-2">
+                                Graded by {{ submission.graded_by.get_full_name }} 
+                                on {{ submission.graded_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                    {% elif user.is_lecturer %}
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">Pending Grading</h5>
+                            <p class="mb-0">This submission has not been graded yet.</p>
+                            <hr>
+                            <a href="{% url 'assignments:grade_submission' submission.id %}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-check-circle me-1"></i>Grade Submission
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Information Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title h5 mb-0">Assignment Details</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="mb-0">
+                        <dt>Title</dt>
+                        <dd>{{ submission.assignment.title }}</dd>
+
+                        <dt>Course</dt>
+                        <dd>{{ submission.assignment.course.name }}</dd>
+
+                        <dt>Due Date</dt>
+                        <dd>{{ submission.assignment.due_date|date:"M d, Y H:i" }}</dd>
+
+                        <dt>Total Marks</dt>
+                        <dd>{{ submission.assignment.total_marks }}</dd>
+
+                        <dt>Status</dt>
+                        <dd>
+                            {% if submission.marks %}
+                                <span class="badge bg-success">Graded</span>
+                            {% else %}
+                                <span class="badge bg-info">Submitted</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        {% if user == submission.student %}
+                            <a href="{% url 'assignments:my_submissions' %}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-list me-1"></i>My Submissions
+                            </a>
+                        {% elif user.is_lecturer %}
+                            <a href="{% url 'assignments:pending_submissions' %}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-tasks me-1"></i>Pending Submissions
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

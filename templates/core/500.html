@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - University Management System{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="display-1 text-danger">500</h1>
+            <h2 class="mb-4">Internal Server Error</h2>
+            <p class="lead mb-4">Sorry, something went wrong on our end. Our team has been notified and we're working to fix the issue.</p>
+            <div class="mt-4">
+                <a href="{% url 'home' %}" class="btn btn-primary me-2">Go to Homepage</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_student %}
+                        <a href="{% url 'accounts:student_dashboard' %}" class="btn btn-outline-primary">Go to Dashboard</a>
+                    {% elif user.is_lecturer %}
+                        <a href="{% url 'accounts:lecturer_dashboard' %}" class="btn btn-outline-primary">Go to Dashboard</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="mt-4">
+                <p class="text-muted">If the problem persists, please contact the system administrator.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

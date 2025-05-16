@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">My Profile</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-user-circle fa-6x text-primary mb-3"></i>
+                            <h3 class="h5">{{ user.get_full_name }}</h3>
+                            <p class="text-muted">{{ user.get_user_type_display }}</p>
+                        </div>
+                        <div class="col-md-8">
+                            <dl class="row">
+                                <dt class="col-sm-4">Username:</dt>
+                                <dd class="col-sm-8">{{ user.username }}</dd>
+
+                                <dt class="col-sm-4">Email:</dt>
+                                <dd class="col-sm-8">{{ user.email }}</dd>
+
+                                <dt class="col-sm-4">Department:</dt>
+                                <dd class="col-sm-8">{{ user.department }}</dd>
+
+                                {% if user.is_student %}
+                                    <dt class="col-sm-4">Registration Number:</dt>
+                                    <dd class="col-sm-8">{{ user.registration_number }}</dd>
+                                {% elif user.is_lecturer %}
+                                    <dt class="col-sm-4">Staff Number:</dt>
+                                    <dd class="col-sm-8">{{ user.staff_number }}</dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+
+                    {% if user.is_student %}
+                        <div class="mb-4">
+                            <h4 class="h5 mb-3">Course Progress</h4>
+                            {% with enrollments=user.enrollments.all %}
+                                {% if enrollments %}
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Course</th>
+                                                    <th>Progress</th>
+                                                    <th>Average Score</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for enrollment in enrollments %}
+                                                    {% with progress=enrollment.get_progress %}
+                                                        <tr>
+                                                            <td>{{ enrollment.course.code }}</td>
+                                                            <td>
+                                                                <div class="progress">
+                                                                    <div class="progress-bar" role="progressbar" 
+                                                                         style="width: {{ progress.progress_percentage }}%"
+                                                                         aria-valuenow="{{ progress.progress_percentage }}"
+                                                                         aria-valuemin="0" aria-valuemax="100">
+                                                                        {{ progress.progress_percentage|floatformat:1 }}%
+                                                                    </div>
+                                                                </div>
+                                                                <small class="text-muted">
+                                                                    {{ progress.completed_assignments }}/{{ progress.total_assignments }} assignments
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                {% with avg_score=enrollment.get_average_score %}
+                                                                    {% if avg_score %}
+                                                                        {{ avg_score }}%
+                                                                    {% else %}
+                                                                        N/A
+                                                                    {% endif %}
+                                                                {% endwith %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">Not enrolled in any courses yet.</p>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

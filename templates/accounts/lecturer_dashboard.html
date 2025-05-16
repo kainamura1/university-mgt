@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Lecturer Dashboard - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Welcome, {{ user.get_full_name }}</h1>
+    
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <h2 class="mb-0">{{ stats.total_students }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Assignments</h5>
+                    <h2 class="mb-0">{{ stats.total_assignments }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Submissions</h5>
+                    <h2 class="mb-0">{{ stats.total_submissions }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Grading</h5>
+                    <h2 class="mb-0">{{ stats.pending_submissions }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- My Courses Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">My Courses</h5>
+                    <a href="{% url 'courses:create_course' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus me-1"></i>Add Course
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if courses %}
+                        <div class="list-group list-group-flush">
+                            {% for course in courses %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ course.code }} - {{ course.name }}</h6>
+                                            <small class="text-muted">Department: {{ course.department }}</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <a href="{% url 'courses:course_detail' course.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                            <a href="{% url 'assignments:create_assignment' course.id %}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-plus me-1"></i>Assignment
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-users me-1"></i>{{ course.student_count }} Students
+                                        </span>
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-tasks me-1"></i>{{ course.assignment_count }} Assignments
+                                        </span>
+                                        {% if course.ungraded_count %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-circle me-1"></i>
+                                                {{ course.ungraded_count }} Pending
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-3">You haven't created any courses yet.</p>
+                            <a href="{% url 'courses:create_course' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create Your First Course
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Submissions Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Recent Submissions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_submissions %}
+                        <div class="list-group list-group-flush">
+                            {% for submission in recent_submissions %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ submission.student.get_full_name }}</h6>
+                                        <small>{{ submission.submitted_at|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">
+                                        <strong>{{ submission.assignment.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ submission.assignment.course.code }}</small>
+                                    </p>
+                                    <div class="mt-2">
+                                        {% if not submission.marks %}
+                                            <a href="{% url 'assignments:grade_submission' submission.id %}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-check-circle me-1"></i>Grade
+                                            </a>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>
+                                                Graded: {{ submission.marks }}/{{ submission.assignment.total_marks }}
+                                            </span>
+                                        {% endif %}
+                                        <a href="{% url 'assignments:submission_detail' submission.id %}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if stats.pending_submissions > 10 %}
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'assignments:pending_submissions' %}" class="btn btn-outline-primary">
+                                        View All Pending Submissions ({{ stats.pending_submissions }})
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-4">No submissions yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Pending Submissions - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Pending Submissions</h1>
+
+    {% if submissions %}
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="card-title mb-0">Submissions Awaiting Grading</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Assignment</th>
+                                <th>Course</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in submissions %}
+                                <tr>
+                                    <td>
+                                        <div>{{ submission.student.get_full_name }}</div>
+                                        <small class="text-muted">{{ submission.student.registration_number }}</small>
+                                    </td>
+                                    <td>{{ submission.assignment.title }}</td>
+                                    <td>{{ submission.assignment.course.code }}</td>
+                                    <td>
+                                        {{ submission.submitted_at|date:"M d, Y H:i" }}
+                                        {% if submission.is_late %}
+                                            <span class="badge bg-warning">Late</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">Pending</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'assignments:grade_submission' submission.id %}" 
+                                           class="btn btn-primary btn-sm">
+                                            Grade
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course-wise Summary -->
+        <div class="row mt-4">
+            {% regroup submissions by assignment.course as course_submissions %}
+            {% for course in course_submissions %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">{{ course.grouper.code }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">{{ course.grouper.name }}</h6>
+                            <p class="card-text">
+                                Pending submissions: {{ course.list|length }}
+                            </p>
+                            <a href="{% url 'courses:course_detail' course.grouper.id %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                View Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">No pending submissions to grade.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

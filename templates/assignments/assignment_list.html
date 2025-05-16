@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Assignments - University Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Assignments</h1>
+
+    {% if assignments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Course</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                        <tr>
+                            <td>{{ assignment.title }}</td>
+                            <td>{{ assignment.course.code }}</td>
+                            <td>
+                                {{ assignment.due_date|date:"M d, Y" }}
+                                {% if assignment.is_past_due %}
+                                    <span class="badge bg-danger ms-1">Past Due</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.has_submitted %}
+                                    <span class="badge bg-success">Submitted</span>
+                                {% else %}
+                                    {% if assignment.is_past_due %}
+                                        <span class="badge bg-danger">Missed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'assignments:assignment_detail' assignment.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>Details
+                                    </a>
+                                    {% if user.is_student %}
+                                        {% if assignment.has_submitted %}
+                                            <a href="{% url 'assignments:submission_detail' assignment.submissions.first.id %}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check-circle me-1"></i>View Submission
+                                            </a>
+                                        {% elif not assignment.is_past_due %}
+                                            <a href="{% url 'assignments:submit_assignment' assignment.id %}" 
+                                               class="btn btn-sm btn-success">
+                                                <i class="fas fa-paper-plane me-1"></i>Submit
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{% url 'assignments:edit_assignment' assignment.id %}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ assignment.id }}">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% if not user.is_student %}
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ assignment.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Assignment</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete "{{ assignment.title }}"?</p>
+                                            <div class="alert alert-danger">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                This will also delete all student submissions and grades.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form method="post" action="{% url 'assignments:delete_assignment' assignment.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">No assignments found.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
