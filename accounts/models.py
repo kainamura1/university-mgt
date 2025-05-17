@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('student', 'Student'),
-        ('lecturer', 'Lecturer'),
+        ('teacher', 'teacher'),
     ]
     
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
@@ -25,7 +25,7 @@ class User(AbstractUser):
         return self.user_type == 'student'
 
     def is_lecturer(self):
-        return self.user_type == 'lecturer'
+        return self.user_type == 'teacher'
 
     def get_enrolled_courses(self):
         if self.is_student():
@@ -33,7 +33,7 @@ class User(AbstractUser):
         return []
 
     def get_teaching_courses(self):
-        if self.is_lecturer():
+        if self.is_teacher():
             return self.courses_teaching.all()
         return []
 
@@ -41,5 +41,5 @@ class User(AbstractUser):
         super().clean()
         if self.is_student():
             self.staff_number = None
-        elif self.is_lecturer():
+        elif self.is_teacher():
             self.registration_number = None

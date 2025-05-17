@@ -17,7 +17,7 @@ class CustomLoginView(LoginView):
         if self.request.user.is_student():
             return reverse('accounts:student_dashboard')
         else:
-            return reverse('accounts:lecturer_dashboard')
+            return reverse('accounts:teacher_dashboard')
 
 def register(request):
     if request.method == 'POST':
@@ -112,9 +112,9 @@ def student_dashboard(request):
     return render(request, 'accounts/student_dashboard.html', context)
 
 @login_required
-def lecturer_dashboard(request):
+def teacher_dashboard(request):
     if not request.user.is_lecturer():
-        messages.error(request, 'Access denied. Lecturers only.')
+        messages.error(request, 'Access denied. teachers only.')
         return redirect('home')
     
     # Get all courses taught by the lecturer with submission stats
@@ -159,4 +159,4 @@ def lecturer_dashboard(request):
         }
     }
     
-    return render(request, 'accounts/lecturer_dashboard.html', context)
+    return render(request, 'accounts/teacher_dashboard.html', context)

@@ -26,5 +26,5 @@ urlpatterns = [
     
     # Dashboard URLs
     path('dashboard/student/', views.student_dashboard, name='student_dashboard'),
-    path('dashboard/lecturer/', views.lecturer_dashboard, name='lecturer_dashboard'),
+    path('dashboard/teacher/', views.teacher_dashboard, name='teacher_dashboard'),
 ]

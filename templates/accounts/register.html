@@ -119,7 +119,7 @@
                         </div>
                     </div>
 
-                    <div id="lecturer-fields" style="display: none;">
+                    <div id="teacher-fields" style="display: none;">
                         <div class="mb-3">
                             <label for="{{ form.staff_number.id_for_label }}" class="form-label">Staff Number</label>
                             <input type="text" name="{{ form.staff_number.name }}" 
@@ -175,12 +175,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
     const studentFields = document.getElementById('student-fields');
-    const lecturerFields = document.getElementById('lecturer-fields');
+    const teacherFields = document.getElementById('teacher-fields');
 
     function toggleFields() {
         const selectedValue = userTypeSelect.value;
         studentFields.style.display = selectedValue === 'student' ? 'block' : 'none';
-        lecturerFields.style.display = selectedValue === 'lecturer' ? 'block' : 'none';
+        teacherFields.style.display = selectedValue === 'teacher' ? 'block' : 'none';
     }
 
     userTypeSelect.addEventListener('change', toggleFields);
